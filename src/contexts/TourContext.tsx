@@ -20,15 +20,16 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
         .from('tours')
         .select('*')
         .eq('is_active', true)
-        .single()
+        .limit(1)
 
       if (error) {
-        if (error.code !== 'PGRST116') { // Not found error
-          throw error
-        }
-        setActiveTour(null)
+        throw error
+      }
+
+      if (data && data.length > 0) {
+        setActiveTour(data[0])
       } else {
-        setActiveTour(data)
+        setActiveTour(null)
       }
     } catch (error) {
       console.error('Error fetching active tour:', error)
