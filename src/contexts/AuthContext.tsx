@@ -27,21 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('Initializing auth...')
         
-        // Quick timeout - don't wait too long
-        const timeoutId = setTimeout(() => {
-          if (mounted) {
-            console.warn('Auth initialization timeout - proceeding without user data')
-            setLoading(false)
-          }
-        }, 3000) // Reduced to 3 seconds
-
-        // Get initial session quickly
+        // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession()
 
         if (!mounted) return
-
-        // Clear timeout since we got a response
-        clearTimeout(timeoutId)
 
         if (error) {
           console.error('Session error:', error)
@@ -54,7 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSupabaseUser(session?.user ?? null)
         
         if (session?.user) {
-          // Fetch profile without artificial timeout
           await fetchUserProfile(session.user.id)
         } else {
           setUser(null)
@@ -98,7 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Fetching user profile for:', userId)
       
-      // Direct Supabase query without artificial timeout
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -108,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Error fetching user profile:', error)
         
-        // Handle specific error cases but don't block the UI
+        // Handle specific error cases
         if (error.code === 'PGRST116' || error.message?.includes('no rows returned')) {
           console.log('User profile not found - user may need to complete registration')
         } else if (error.code === '42P01' || error.message?.includes('does not exist')) {
@@ -117,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         setUser(null)
       } else if (data) {
-        console.log('User profile fetched successfully')
+        console.log('User profile fetched successfully:', data)
         setUser(data)
       } else {
         console.log('No user profile found')
@@ -181,7 +168,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.user) {
         console.log('Creating user profile for:', data.user.id)
-        // Create user profile without artificial timeout
         try {
           const { error: profileError } = await supabase
             .from('users')
