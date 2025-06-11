@@ -29,6 +29,7 @@ export default function Auth() {
     try {
       let result
       if (isSignUp) {
+        console.log('Submitting sign up form')
         result = await signUp(
           formData.email,
           formData.password,
@@ -37,18 +38,28 @@ export default function Auth() {
           formData.handicap
         )
       } else {
+        console.log('Submitting sign in form')
         result = await signIn(formData.email, formData.password)
       }
 
       if (result.error) {
+        console.error('Auth error:', result.error)
         // Provide user-friendly error messages
         if (result.error.includes('User already registered') || result.error.includes('user_already_exists')) {
           setError('This email is already registered. Please sign in instead.')
+        } else if (result.error.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.')
+        } else if (result.error.includes('Email not confirmed')) {
+          setError('Please check your email and click the confirmation link before signing in.')
         } else {
           setError(result.error)
         }
+      } else {
+        console.log('Auth successful, should redirect soon')
+        // Success - the auth state change will handle the redirect
       }
     } catch (err) {
+      console.error('Unexpected auth error:', err)
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
@@ -188,7 +199,14 @@ export default function Auth() {
               disabled={loading}
               className="w-full btn btn-primary btn-lg"
             >
-              {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                </div>
+              ) : (
+                isSignUp ? 'Create Account' : 'Sign In'
+              )}
             </button>
           </div>
 
