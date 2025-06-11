@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error.code === 'PGRST116' || error.message?.includes('no rows returned')) {
           console.log('User profile not found - user may need to complete registration')
         } else if (error.code === '42P01' || error.message?.includes('does not exist')) {
-          console.error('Database table does not exist')
+          console.error('Database table does not exist - please run migrations')
         }
         
         setUser(null)
