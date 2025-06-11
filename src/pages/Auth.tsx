@@ -62,7 +62,13 @@ export default function Auth() {
       }
 
       if (result.error) {
-        console.error('Auth error:', result.error)
+        // Use console.warn for user already registered errors since this is a handled scenario
+        if (result.error.includes('User already registered') || result.error.includes('user_already_exists')) {
+          console.warn('Auth warning:', result.error)
+        } else {
+          console.error('Auth error:', result.error)
+        }
+        
         // Provide user-friendly error messages
         if (result.error.includes('User already registered') || result.error.includes('user_already_exists')) {
           setError('This email is already registered. Please sign in instead.')

@@ -169,7 +169,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        console.error('Sign up error:', error)
+        // Use console.warn for user already registered errors since this is a handled scenario
+        if (error.message.includes('User already registered') || error.message.includes('user_already_exists')) {
+          console.warn('Sign up warning:', error.message)
+        } else {
+          console.error('Sign up error:', error)
+        }
         setLoading(false)
         return { error: error.message }
       }
