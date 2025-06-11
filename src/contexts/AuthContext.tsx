@@ -22,11 +22,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true
+    let initializationTimeout: NodeJS.Timeout
 
     const initializeAuth = async () => {
       try {
         console.log('Initializing auth...')
         
+        // Set a maximum timeout for initialization
+        initializationTimeout = setTimeout(() => {
+          if (mounted) {
+            console.warn('Auth initialization timeout - setting loading to false')
+            setLoading(false)
+          }
+        }, 10000) // 10 second timeout
+
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession()
 
@@ -36,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (error) {
           console.error('Error getting session:', error)
+          setSupabaseUser(null)
+          setUser(null)
           setLoading(false)
           return
         }
@@ -45,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           await fetchUserProfile(session.user.id)
         } else {
+          setUser(null)
           setLoading(false)
         }
       } catch (error) {
@@ -53,6 +65,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSupabaseUser(null)
           setUser(null)
           setLoading(false)
+        }
+      } finally {
+        if (initializationTimeout) {
+          clearTimeout(initializationTimeout)
         }
       }
     }
@@ -77,6 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout)
+      }
       subscription.unsubscribe()
     }
   }, [])
@@ -89,12 +108,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single()
+        .maybeSingle() // Use maybeSingle instead of single to handle no rows gracefully
 
       if (error) {
         console.error('Error fetching user profile:', error)
         
-        // If user profile doesn't exist, this might be a new user
+        // Handle specific error cases
         if (error.code === 'PGRST116' || error.message?.includes('no rows returned')) {
           console.log('User profile not found - this might be a new user who needs to complete registration')
           setUser(null)
@@ -105,9 +124,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Database error:', error)
           setUser(null)
         }
-      } else {
+      } else if (data) {
         console.log('User profile fetched successfully:', data)
         setUser(data)
+      } else {
+        console.log('No user profile found')
+        setUser(null)
       }
     } catch (error: any) {
       console.error('Unexpected error fetching user profile:', error)
@@ -121,6 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Attempting sign in for:', email)
+      setLoading(true)
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -129,6 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Sign in error:', error)
+        setLoading(false)
         return { error: error.message }
       }
 
@@ -137,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null }
     } catch (error: any) {
       console.error('Unexpected sign in error:', error)
+      setLoading(false)
       return { error: 'An unexpected error occurred' }
     }
   }
@@ -144,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, firstName: string, lastName: string, handicap: number) => {
     try {
       console.log('Attempting sign up for:', email)
+      setLoading(true)
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -152,6 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Sign up error:', error)
+        setLoading(false)
         throw error
       }
 
@@ -173,6 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Profile creation error:', profileError)
           // Don't throw error if it's just a table not existing issue
           if (profileError.code !== '42P01') {
+            setLoading(false)
             throw profileError
           } else {
             console.warn('Users table does not exist - profile creation skipped')
@@ -182,15 +210,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
+      setLoading(false)
       return { error: null }
     } catch (error: any) {
       console.error('Sign up error:', error)
+      setLoading(false)
       return { error: error.message || 'An unexpected error occurred' }
     }
   }
 
   const signOut = async () => {
     console.log('Signing out')
+    setLoading(true)
     await supabase.auth.signOut()
     // Loading and user state will be handled by the auth state change
   }
