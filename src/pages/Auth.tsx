@@ -57,12 +57,17 @@ export default function Auth() {
       } else {
         console.log('Auth successful, should redirect soon')
         // Success - the auth state change will handle the redirect
+        // Keep loading true until the redirect happens
+        return
       }
     } catch (err) {
       console.error('Unexpected auth error:', err)
       setError('An unexpected error occurred')
     } finally {
-      setLoading(false)
+      // Only set loading to false if there was an error
+      if (error) {
+        setLoading(false)
+      }
     }
   }
 
@@ -217,6 +222,7 @@ export default function Auth() {
               onClick={() => {
                 setIsSignUp(!isSignUp)
                 setError('')
+                setLoading(false)
                 setFormData({
                   email: '',
                   password: '',

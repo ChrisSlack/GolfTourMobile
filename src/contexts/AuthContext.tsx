@@ -23,6 +23,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('Initial session check:', session?.user?.id, error)
+      
       if (error) {
         console.error('Error getting session:', error)
         setLoading(false)
@@ -40,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.id)
+      
       setSupabaseUser(session?.user ?? null)
       
       if (session?.user) {
@@ -56,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('Fetching user profile for:', userId)
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -64,27 +68,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching user profile:', error)
-        // If user profile doesn't exist, we might need to create it
+        
+        // If user profile doesn't exist, this might be a new user
         if (error.code === 'PGRST116') {
-          console.log('User profile not found, user may need to complete registration')
+          console.log('User profile not found - this might be a new user who needs to complete registration')
+          setUser(null)
+        } else {
+          console.error('Database error:', error)
+          setUser(null)
         }
-        throw error
+      } else {
+        console.log('User profile fetched successfully:', data)
+        setUser(data)
       }
-      
-      console.log('User profile fetched:', data)
-      setUser(data)
     } catch (error) {
-      console.error('Error fetching user profile:', error)
-      // Don't throw here, just log the error and continue
+      console.error('Unexpected error fetching user profile:', error)
       setUser(null)
     } finally {
+      console.log('Setting loading to false')
       setLoading(false)
     }
   }
 
   const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true)
       console.log('Attempting sign in for:', email)
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -98,18 +105,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log('Sign in successful:', data.user?.id)
+      // Don't set loading here - let the auth state change handle it
       return { error: null }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Unexpected sign in error:', error)
       return { error: 'An unexpected error occurred' }
-    } finally {
-      // Don't set loading to false here, let the auth state change handle it
     }
   }
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, handicap: number) => {
     try {
-      setLoading(true)
       console.log('Attempting sign up for:', email)
       
       const { data, error } = await supabase.auth.signUp({
@@ -148,15 +153,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error('Sign up error:', error)
       return { error: error.message || 'An unexpected error occurred' }
-    } finally {
-      // Don't set loading to false here, let the auth state change handle it
     }
   }
 
   const signOut = async () => {
-    setLoading(true)
+    console.log('Signing out')
     await supabase.auth.signOut()
-    // Loading will be set to false by the auth state change
+    // Loading and user state will be handled by the auth state change
   }
 
   const updateProfile = async (data: Partial<User>) => {
