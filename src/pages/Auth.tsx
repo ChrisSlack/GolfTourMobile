@@ -41,7 +41,12 @@ export default function Auth() {
       }
 
       if (result.error) {
-        setError(result.error)
+        // Provide user-friendly error messages
+        if (result.error.includes('User already registered') || result.error.includes('user_already_exists')) {
+          setError('This email is already registered. Please sign in instead.')
+        } else {
+          setError(result.error)
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred')
