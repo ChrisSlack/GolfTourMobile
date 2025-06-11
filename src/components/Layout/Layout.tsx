@@ -17,6 +17,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="text-center">
           <div className="w-12 h-12 border-2 border-gray-300 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
+          <p className="text-xs text-gray-500 mt-2">If this takes too long, please refresh the page</p>
         </div>
       </div>
     )

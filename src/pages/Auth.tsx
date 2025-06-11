@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
 
@@ -14,11 +14,30 @@ export default function Auth() {
     handicap: 18
   })
 
-  const { user, signIn, signUp } = useAuth()
+  const { user, signIn, signUp, loading: authLoading } = useAuth()
+
+  // Reset loading state when auth loading changes
+  useEffect(() => {
+    if (!authLoading && loading) {
+      setLoading(false)
+    }
+  }, [authLoading, loading])
 
   // Redirect if already authenticated
   if (user) {
     return <Navigate to="/" replace />
+  }
+
+  // Show loading if auth is still initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="w-12 h-12 border-2 border-gray-300 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,20 +73,16 @@ export default function Auth() {
         } else {
           setError(result.error)
         }
+        setLoading(false)
       } else {
         console.log('Auth successful, should redirect soon')
-        // Success - the auth state change will handle the redirect
-        // Keep loading true until the redirect happens
-        return
+        // Success - keep loading true until redirect happens
+        // The auth context will handle the redirect
       }
     } catch (err) {
       console.error('Unexpected auth error:', err)
       setError('An unexpected error occurred')
-    } finally {
-      // Only set loading to false if there was an error
-      if (error) {
-        setLoading(false)
-      }
+      setLoading(false)
     }
   }
 
@@ -120,6 +135,7 @@ export default function Auth() {
                       className="form-input"
                       value={formData.firstName}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                   <div className="form-group">
@@ -134,6 +150,7 @@ export default function Auth() {
                       className="form-input"
                       value={formData.lastName}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -152,6 +169,7 @@ export default function Auth() {
                     className="form-input"
                     value={formData.handicap}
                     onChange={handleInputChange}
+                    disabled={loading}
                   />
                   <p className="form-help">
                     Enter your current handicap index (0-54)
@@ -173,6 +191,7 @@ export default function Auth() {
                 className="form-input"
                 value={formData.email}
                 onChange={handleInputChange}
+                disabled={loading}
               />
             </div>
 
@@ -189,6 +208,7 @@ export default function Auth() {
                 className="form-input"
                 value={formData.password}
                 onChange={handleInputChange}
+                disabled={loading}
               />
               {isSignUp && (
                 <p className="form-help">
@@ -219,6 +239,7 @@ export default function Auth() {
             <button
               type="button"
               className="text-primary hover:underline"
+              disabled={loading}
               onClick={() => {
                 setIsSignUp(!isSignUp)
                 setError('')
