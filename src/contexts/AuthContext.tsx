@@ -54,8 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSupabaseUser(session?.user ?? null)
         
         if (session?.user) {
-          // Fetch profile with quick timeout
-          await fetchUserProfile(session.user.id, 2000) // 2 second timeout for profile
+          // Fetch profile without artificial timeout
+          await fetchUserProfile(session.user.id)
         } else {
           setUser(null)
           setLoading(false)
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSupabaseUser(session?.user ?? null)
       
       if (session?.user) {
-        await fetchUserProfile(session.user.id, 2000) // Quick profile fetch
+        await fetchUserProfile(session.user.id)
       } else {
         setUser(null)
         setLoading(false)
@@ -94,23 +94,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const fetchUserProfile = async (userId: string, timeout = 2000) => {
+  const fetchUserProfile = async (userId: string) => {
     try {
       console.log('Fetching user profile for:', userId)
       
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), timeout)
-      })
-
-      // Race between the actual fetch and timeout
-      const fetchPromise = supabase
+      // Direct Supabase query without artificial timeout
+      const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .maybeSingle()
-
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any
 
       if (error) {
         console.error('Error fetching user profile:', error)
@@ -178,28 +171,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Sign up error:', error)
         setLoading(false)
-        throw error
+        return { error: error.message }
       }
 
       if (data.user) {
         console.log('Creating user profile for:', data.user.id)
-        // Create user profile with timeout
+        // Create user profile without artificial timeout
         try {
-          const { error: profileError } = await Promise.race([
-            supabase
-              .from('users')
-              .insert({
-                id: data.user.id,
-                email,
-                first_name: firstName,
-                last_name: lastName,
-                handicap,
-                role: 'player'
-              }),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile creation timeout')), 3000)
-            )
-          ]) as any
+          const { error: profileError } = await supabase
+            .from('users')
+            .insert({
+              id: data.user.id,
+              email,
+              first_name: firstName,
+              last_name: lastName,
+              handicap,
+              role: 'player'
+            })
 
           if (profileError) {
             console.error('Profile creation error:', profileError)
@@ -211,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('User profile created successfully')
           }
         } catch (profileError) {
-          console.warn('Profile creation timed out or failed:', profileError)
+          console.warn('Profile creation failed:', profileError)
         }
       }
 
