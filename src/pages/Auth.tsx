@@ -66,6 +66,15 @@ export default function Auth() {
         // Provide user-friendly error messages
         if (result.error.includes('User already registered') || result.error.includes('user_already_exists')) {
           setError('This email is already registered. Please sign in instead.')
+          // Automatically switch to sign-in form and clear password
+          setIsSignUp(false)
+          setFormData(prev => ({
+            ...prev,
+            password: '',
+            firstName: '',
+            lastName: '',
+            handicap: 18
+          }))
         } else if (result.error.includes('Invalid login credentials')) {
           setError('Invalid email or password. Please check your credentials and try again.')
         } else if (result.error.includes('Email not confirmed')) {
