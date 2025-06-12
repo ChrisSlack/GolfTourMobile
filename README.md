@@ -4,6 +4,8 @@ A mobile-friendly React + Vite application for managing golf tour information.
 
 ## Getting Started
 
+Ensure you have **Node.js 18** or later installed. The CI pipeline uses Node 20.
+
 1. **Install dependencies**
    ```bash
    npm ci
