@@ -4,9 +4,16 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import importPlugin from 'eslint-plugin-import'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
+import { FlatCompat } from '@eslint/eslintrc'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const compat = new FlatCompat({ baseDirectory: __dirname })
 
 export default [
   js.configs.recommended,
+  ...compat.extends('plugin:import/recommended', 'plugin:import/typescript'),
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
@@ -43,9 +50,12 @@ export default [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      'import/order': 'off',
+      'import/namespace': 'off',
+      'import/no-unresolved': 'off',
     },
   },
   {
-    ignores: ['vite.config.ts', 'dist/**/*'],
+    ignores: ['vite.config.ts', 'dist/**/*', 'eslint.config.js', 'postcss.config.js'],
   },
 ]
