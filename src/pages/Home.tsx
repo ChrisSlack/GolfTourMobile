@@ -6,7 +6,7 @@ export default function Home() {
   const { activeTour } = useTour()
   const { user } = useAuth()
 
-  const daysUntilTour = useTourCountdown(activeTour)
+  const countdown = useTourCountdown(activeTour)
 
   if (!user) {
     return (
@@ -45,13 +45,11 @@ export default function Home() {
       </div>
 
       {/* Countdown Card */}
-      {daysUntilTour && daysUntilTour > 0 && (
+      {countdown.daysLeft !== null && countdown.daysLeft > 0 && (
         <div className="card bg-primary text-white">
           <div className="text-center">
-            <div className="text-4xl font-bold mb-2">{daysUntilTour}</div>
-            <div className="text-lg">
-              {daysUntilTour === 1 ? 'Day' : 'Days'} Until Tour Starts!
-            </div>
+            <div className="text-4xl font-bold mb-2">{countdown.daysLeft}</div>
+            <div className="text-lg">{countdown.label} Until Tour Starts!</div>
             {activeTour && (
               <div className="text-sm opacity-90 mt-2">
                 {new Date(activeTour.start_date).toLocaleDateString('en-GB', {

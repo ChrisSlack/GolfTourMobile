@@ -5,7 +5,8 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  logger.error('Missing Supabase environment variables:', {
+  logger.error('Missing Supabase environment variables', {
+    component: 'supabase',
     url: !!supabaseUrl,
     key: !!supabaseAnonKey,
   })
@@ -14,7 +15,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   )
 }
 
-logger.log('Initializing Supabase client with URL:', supabaseUrl)
+logger.log('Initializing Supabase client', { component: 'supabase', url: supabaseUrl })
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -27,8 +28,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Test the connection
 supabase.auth.getSession().then(({ data: _data, error }) => {
   if (error) {
-    logger.error('Supabase connection error:', error)
+    logger.error('Supabase connection error', { component: 'supabase', error })
   } else {
-    logger.log('Supabase connected successfully')
+    logger.log('Supabase connected successfully', { component: 'supabase' })
   }
 })

@@ -25,7 +25,11 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    logger.error('Unhandled error:', error, info)
+    logger.error('Unhandled error', {
+      component: 'ErrorBoundary',
+      error,
+      info
+    })
   }
 
   render() {
@@ -37,7 +41,16 @@ export class ErrorBoundary extends Component<
       return (
         <div className="p-4 text-center text-red-600 space-y-4">
           <p>{message}</p>
-          <button className="btn btn-primary" onClick={() => window.location.reload()}>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              try {
+                this.setState({ hasError: false, error: null })
+              } catch {
+                window.location.reload()
+              }
+            }}
+          >
             Retry
           </button>
         </div>

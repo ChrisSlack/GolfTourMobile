@@ -28,6 +28,9 @@ Ensure you have **Node.js 18** or later installed. The CI pipeline uses Node 20.
 - `npm test` - run unit tests with Vitest
 - `npm audit` - check for dependency vulnerabilities
 
+**Fixing audit issues**
+Run `npm audit fix` to apply safe fixes, or `npm audit fix --force` for major bumps. See the npm docs for caveats.
+
 ## Architecture
 
 The app is built with **React** and **TypeScript** using **Vite** for bundling.  

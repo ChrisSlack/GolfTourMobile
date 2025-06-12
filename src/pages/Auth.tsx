@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent, type ChangeEvent } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
 import { logger } from '@/utils/logger'
+import { AuthApiError } from '@supabase/supabase-js'
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -49,7 +50,7 @@ export default function Auth() {
     try {
       let result
       if (isSignUp) {
-        logger.log('Submitting sign up form')
+        logger.log('Submitting sign up form', { component: 'AuthPage' })
         result = await signUp(
           formData.email,
           formData.password,
@@ -58,20 +59,28 @@ export default function Auth() {
           formData.handicap
         )
       } else {
-        logger.log('Submitting sign in form')
+        logger.log('Submitting sign in form', { component: 'AuthPage' })
         result = await signIn(formData.email, formData.password)
       }
 
       if (result.error) {
         // Use logger.warn for user already registered errors since this is a handled scenario
-        if (result.error.includes('User already registered') || result.error.includes('user_already_exists')) {
-          logger.warn('Auth warning:', result.error)
+        if (
+          result.error instanceof AuthApiError &&
+          result.error.status === 400 &&
+          result.error.name === 'User already registered'
+        ) {
+          logger.warn('Auth warning', { component: 'AuthPage', error: result.error })
         } else {
-          logger.error('Auth error:', result.error)
+          logger.error('Auth error', { component: 'AuthPage', error: result.error })
         }
         
         // Provide user-friendly error messages
-        if (result.error.includes('User already registered') || result.error.includes('user_already_exists')) {
+        if (
+          result.error instanceof AuthApiError &&
+          result.error.status === 400 &&
+          result.error.name === 'User already registered'
+        ) {
           setError('This email is already registered. Please sign in instead.')
           // Automatically switch to sign-in form and clear password
           setIsSignUp(false)
@@ -82,21 +91,27 @@ export default function Auth() {
             lastName: '',
             handicap: 18
           }))
-        } else if (result.error.includes('Invalid login credentials')) {
+        } else if (
+          result.error instanceof AuthApiError &&
+          result.error.message.includes('Invalid login credentials')
+        ) {
           setError('Invalid email or password. Please check your credentials and try again.')
-        } else if (result.error.includes('Email not confirmed')) {
+        } else if (
+          result.error instanceof AuthApiError &&
+          result.error.message.includes('Email not confirmed')
+        ) {
           setError('Please check your email and click the confirmation link before signing in.')
         } else {
-          setError(result.error)
+          setError((result.error as Error).message)
         }
         setLoading(false)
       } else {
-        logger.log('Auth successful, should redirect soon')
+        logger.log('Auth successful, should redirect soon', { component: 'AuthPage' })
         // Success - keep loading true until redirect happens
         // The auth context will handle the redirect
       }
     } catch (err) {
-      logger.error('Unexpected auth error:', err)
+      logger.error('Unexpected auth error', { component: 'AuthPage', error: err })
       setError('An unexpected error occurred')
       setLoading(false)
     }
@@ -115,7 +130,7 @@ export default function Auth() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
-            <span role="img" aria-label="golf" className="text-white text-2xl">⛳</span>
+            <span role="img" aria-label="golf icon" className="text-white text-2xl">⛳</span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
             {isSignUp ? 'Join the Tour' : 'Welcome Back'}
