@@ -25,6 +25,37 @@ A mobile-friendly React + Vite application for managing golf tour information.
 - `npm run lint` - run ESLint
 - `npm test` - run unit tests with Vitest
 
+## Architecture
+
+The app is built with **React** and **TypeScript** using **Vite** for bundling.  
+Tailwind CSS provides styling with a custom colour palette defined via CSS
+variables. Application state is managed through React contexts and custom hooks.
+Data is stored in **Supabase** tables and accessed via the Supabase JS client.
+
+## Supabase Schema
+
+This project expects two main tables:
+
+`users`
+| Column     | Type    | Notes                                 |
+| ---------- | ------- | ------------------------------------- |
+| `id`       | uuid    | Primary key references `auth.users`   |
+| `email`    | text    | Unique email address                  |
+| `first_name` | text  | First name                            |
+| `last_name` | text   | Last name                             |
+| `handicap` | integer | Player handicap                       |
+| `role`     | text    | `player` or `admin`                   |
+
+`tours`
+| Column       | Type       | Notes                   |
+| ------------ | ---------- | ----------------------- |
+| `id`         | uuid       | Primary key             |
+| `name`       | text       | Name of the tour        |
+| `year`       | integer    | Year of the tour        |
+| `start_date` | timestamptz| Tour start date         |
+| `end_date`   | timestamptz| (optional) Tour end     |
+| `is_active`  | boolean    | Whether tour is active  |
+
 ## Environment Variables
 
 The app expects the following variables which are used to connect to Supabase:

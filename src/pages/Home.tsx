@@ -1,4 +1,3 @@
-import React from 'react'
 import { useTour } from '@/contexts/TourContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTourCountdown } from '@/hooks/useTourCountdown'
