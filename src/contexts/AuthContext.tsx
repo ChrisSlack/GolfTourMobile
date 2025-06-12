@@ -1,16 +1,23 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User as SupabaseUser } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
-import { User } from '../types'
+import { supabase } from '@/lib/supabase'
+import { User } from '@/types'
+import { logger } from '@/utils/logger'
 
 interface AuthContextType {
   user: User | null
   supabaseUser: SupabaseUser | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>
-  signUp: (email: string, password: string, firstName: string, lastName: string, handicap: number) => Promise<{ error: string | null }>
+  signIn: (_email: string, _password: string) => Promise<{ error: string | null }>
+  signUp: (
+    _email: string,
+    _password: string,
+    _firstName: string,
+    _lastName: string,
+    _handicap: number
+  ) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
-  updateProfile: (data: Partial<User>) => Promise<{ error: string | null }>
+  updateProfile: (_data: Partial<User>) => Promise<{ error: string | null }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -25,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        console.log('Initializing auth...')
+        logger.log('Initializing auth...')
         
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession()
@@ -33,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!mounted) return
 
         if (error) {
-          console.error('Session error:', error)
+          logger.error('Session error:', error)
           setSupabaseUser(null)
           setUser(null)
           setLoading(false)
@@ -49,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false)
         }
       } catch (error) {
-        console.error('Auth initialization error:', error)
+        logger.error('Auth initialization error:', error)
         if (mounted) {
           setSupabaseUser(null)
           setUser(null)
@@ -64,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
       
-      console.log('Auth state changed:', event, session?.user?.id)
+      logger.log('Auth state changed:', event, session?.user?.id)
       
       setSupabaseUser(session?.user ?? null)
       
@@ -84,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log('Fetching user profile for:', userId)
+      logger.log('Fetching user profile for:', userId)
       
       const { data, error } = await supabase
         .from('users')
@@ -93,53 +100,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle()
 
       if (error) {
-        console.error('Error fetching user profile:', error)
+        logger.error('Error fetching user profile:', error)
         
         // Handle specific error cases
         if (error.code === 'PGRST116' || error.message?.includes('no rows returned')) {
-          console.log('User profile not found - user may need to complete registration')
+          logger.log('User profile not found - user may need to complete registration')
         } else if (error.code === '42P01' || error.message?.includes('does not exist')) {
-          console.error('Database table does not exist - please run migrations')
+          logger.error('Database table does not exist - please run migrations')
         }
         
         setUser(null)
       } else if (data) {
-        console.log('User profile fetched successfully:', data)
+        logger.log('User profile fetched successfully:', data)
         setUser(data)
       } else {
-        console.log('No user profile found')
+        logger.log('No user profile found')
         setUser(null)
       }
     } catch (error: any) {
-      console.error('Profile fetch error:', error.message)
+      logger.error('Profile fetch error:', error.message)
       setUser(null)
     } finally {
-      console.log('Setting loading to false')
+      logger.log('Setting loading to false')
       setLoading(false)
     }
   }
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Attempting sign in for:', email)
+      logger.log('Attempting sign in for:', email)
       setLoading(true)
       
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: _data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
-        console.error('Sign in error:', error)
+        logger.error('Sign in error:', error)
         setLoading(false)
         return { error: error.message }
       }
 
-      console.log('Sign in successful')
+      logger.log('Sign in successful')
       // Auth state change will handle the rest
       return { error: null }
     } catch (error: any) {
-      console.error('Unexpected sign in error:', error)
+      logger.error('Unexpected sign in error:', error)
       setLoading(false)
       return { error: 'An unexpected error occurred' }
     }
@@ -147,7 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, handicap: number) => {
     try {
-      console.log('Attempting sign up for:', email)
+      logger.log('Attempting sign up for:', email)
       setLoading(true)
       
       const { data, error } = await supabase.auth.signUp({
@@ -156,18 +163,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        // Use console.warn for user already registered errors since this is a handled scenario
+        // Use logger.warn for user already registered errors since this is a handled scenario
         if (error.message.includes('User already registered') || error.message.includes('user_already_exists')) {
-          console.warn('Sign up warning:', error.message)
+          logger.warn('Sign up warning:', error.message)
         } else {
-          console.error('Sign up error:', error)
+          logger.error('Sign up error:', error)
         }
         setLoading(false)
         return { error: error.message }
       }
 
       if (data.user) {
-        console.log('Creating user profile for:', data.user.id)
+        logger.log('Creating user profile for:', data.user.id)
         try {
           const { error: profileError } = await supabase
             .from('users')
@@ -181,30 +188,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             })
 
           if (profileError) {
-            console.error('Profile creation error:', profileError)
+            logger.error('Profile creation error:', profileError)
             // Don't fail the whole signup if profile creation fails
             if (profileError.code !== '42P01') {
-              console.warn('Profile creation failed but continuing with signup')
+              logger.warn('Profile creation failed but continuing with signup')
             }
           } else {
-            console.log('User profile created successfully')
+            logger.log('User profile created successfully')
           }
         } catch (profileError) {
-          console.warn('Profile creation failed:', profileError)
+          logger.warn('Profile creation failed:', profileError)
         }
       }
 
       setLoading(false)
       return { error: null }
     } catch (error: any) {
-      console.error('Sign up error:', error)
+      logger.error('Sign up error:', error)
       setLoading(false)
       return { error: error.message || 'An unexpected error occurred' }
     }
   }
 
   const signOut = async () => {
-    console.log('Signing out')
+    logger.log('Signing out')
     setLoading(true)
     await supabase.auth.signOut()
     // Auth state change will handle cleanup

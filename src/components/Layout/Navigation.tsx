@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface NavigationProps {
   isOpen: boolean
@@ -52,7 +52,7 @@ export default function Navigation({ isOpen, onClose }: NavigationProps) {
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <span className="mr-3 text-lg">{item.icon}</span>
+                    <span role="img" aria-label={item.name} className="mr-3 text-lg">{item.icon}</span>
                     {item.name}
                   </Link>
                 )
@@ -129,7 +129,7 @@ export default function Navigation({ isOpen, onClose }: NavigationProps) {
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <span className="mr-4 text-xl">{item.icon}</span>
+                  <span role="img" aria-label={item.name} className="mr-4 text-xl">{item.icon}</span>
                   {item.name}
                 </Link>
               )

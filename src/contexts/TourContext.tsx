@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
-import { Tour } from '../types'
+import { supabase } from '@/lib/supabase'
+import { Tour } from '@/types'
+import { logger } from '@/utils/logger'
 
 interface TourContextType {
   activeTour: Tour | null
@@ -32,7 +33,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
         setActiveTour(null)
       }
     } catch (error) {
-      console.error('Error fetching active tour:', error)
+      logger.error('Error fetching active tour:', error)
       setActiveTour(null)
     } finally {
       setLoading(false)

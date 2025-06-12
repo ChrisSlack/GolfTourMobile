@@ -1,32 +1,20 @@
 import React from 'react'
-import { useTour } from '../contexts/TourContext'
-import { useAuth } from '../contexts/AuthContext'
+import { useTour } from '@/contexts/TourContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useTourCountdown } from '@/hooks/useTourCountdown'
 
 export default function Home() {
   const { activeTour } = useTour()
   const { user } = useAuth()
 
-  const getCountdownToTour = () => {
-    if (!activeTour?.start_date) return null
-    
-    const startDate = new Date(activeTour.start_date)
-    const now = new Date()
-    const diffTime = startDate.getTime() - now.getTime()
-    
-    if (diffTime <= 0) return null
-    
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
-  }
-
-  const daysUntilTour = getCountdownToTour()
+  const daysUntilTour = useTourCountdown(activeTour)
 
   if (!user) {
     return (
       <div className="text-center py-12">
         <div className="max-w-md mx-auto">
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-white text-2xl">⛳</span>
+            <span role="img" aria-label="golf" className="text-white text-2xl">⛳</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Welcome to Portugal Golf Tour 2025
@@ -84,7 +72,7 @@ export default function Home() {
         <a href="/schedule" className="card hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-primary bg-opacity-10 rounded-lg flex items-center justify-center mr-4">
-              <span className="text-primary text-xl">📅</span>
+              <span role="img" aria-label="Schedule" className="text-primary text-xl">📅</span>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Schedule</h3>
@@ -96,7 +84,7 @@ export default function Home() {
         <a href="/scorecard" className="card hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-secondary bg-opacity-10 rounded-lg flex items-center justify-center mr-4">
-              <span className="text-secondary text-xl">📊</span>
+              <span role="img" aria-label="Scorecard" className="text-secondary text-xl">📊</span>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Scorecard</h3>
@@ -108,7 +96,7 @@ export default function Home() {
         <a href="/leaderboard" className="card hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-accent bg-opacity-10 rounded-lg flex items-center justify-center mr-4">
-              <span className="text-accent text-xl">🏆</span>
+              <span role="img" aria-label="Leaderboard" className="text-accent text-xl">🏆</span>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Leaderboard</h3>
@@ -120,7 +108,7 @@ export default function Home() {
         <a href="/teams" className="card hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-success bg-opacity-10 rounded-lg flex items-center justify-center mr-4">
-              <span className="text-success text-xl">👥</span>
+              <span role="img" aria-label="Teams" className="text-success text-xl">👥</span>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Teams</h3>
@@ -132,7 +120,7 @@ export default function Home() {
         <a href="/fines" className="card hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-warning bg-opacity-10 rounded-lg flex items-center justify-center mr-4">
-              <span className="text-warning text-xl">💰</span>
+              <span role="img" aria-label="Fines" className="text-warning text-xl">💰</span>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Fines</h3>
@@ -144,7 +132,7 @@ export default function Home() {
         <a href="/friday-activities" className="card hover:shadow-lg transition-shadow">
           <div className="flex items-center">
             <div className="w-12 h-12 bg-error bg-opacity-10 rounded-lg flex items-center justify-center mr-4">
-              <span className="text-error text-xl">🎉</span>
+              <span role="img" aria-label="Friday fun" className="text-error text-xl">🎉</span>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">Friday Fun</h3>

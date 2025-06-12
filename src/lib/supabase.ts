@@ -1,17 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
+import { logger } from '@/utils/logger'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables:', {
+  logger.error('Missing Supabase environment variables:', {
     url: !!supabaseUrl,
-    key: !!supabaseAnonKey
+    key: !!supabaseAnonKey,
   })
-  throw new Error('Missing Supabase environment variables. Please check your .env file.')
+  throw new Error(
+    'Missing Supabase environment variables. Please check your .env file.',
+  )
 }
 
-console.log('Initializing Supabase client with URL:', supabaseUrl)
+logger.log('Initializing Supabase client with URL:', supabaseUrl)
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -22,10 +25,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 })
 
 // Test the connection
-supabase.auth.getSession().then(({ data, error }) => {
+supabase.auth.getSession().then(({ data: _data, error }) => {
   if (error) {
-    console.error('Supabase connection error:', error)
+    logger.error('Supabase connection error:', error)
   } else {
-    console.log('Supabase connected successfully')
+    logger.log('Supabase connected successfully')
   }
 })

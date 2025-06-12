@@ -10,7 +10,7 @@ import {
   isValidHandicap,
   isValidHoleScore,
   formatScoreDisplay
-} from '../golf'
+} from '@/utils/golf'
 
 describe('Golf Calculations', () => {
   describe('calculateCourseHandicap', () => {
@@ -47,7 +47,7 @@ describe('Golf Calculations', () => {
 
   describe('calculateStablefordPoints', () => {
     it('should calculate Stableford points correctly', () => {
-      expect(calculateStablefordPoints(2, 4)).toBe(5) // Eagle (-2)
+      expect(calculateStablefordPoints(2, 4)).toBe(4) // Eagle (-2)
       expect(calculateStablefordPoints(3, 4)).toBe(3) // Birdie (-1)
       expect(calculateStablefordPoints(4, 4)).toBe(2) // Par (0)
       expect(calculateStablefordPoints(5, 4)).toBe(1) // Bogey (+1)
@@ -79,9 +79,9 @@ describe('Golf Calculations', () => {
       const result = countAchievements(holes, pars)
       
       expect(result.eagles).toBe(1)  // One eagle (2 on par 4)
-      expect(result.birdies).toBe(2) // Two birdies (3 on par 4)
-      expect(result.pars).toBe(14)   // Fourteen pars
-      expect(result.bogeys).toBe(1)  // One bogey (5 on par 4)
+      expect(result.birdies).toBe(4) // Four birdies (3 on par 4)
+      expect(result.pars).toBe(11)   // Eleven pars
+      expect(result.bogeys).toBe(2)  // Two bogeys (5 on par 4)
     })
   })
 

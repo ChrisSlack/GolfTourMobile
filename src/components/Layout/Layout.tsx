@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import Navigation from './Navigation'
 import Header from './Header'
 
@@ -9,7 +9,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, loading } = useAuth()
+  const { loading } = useAuth()
 
   if (loading) {
     return (

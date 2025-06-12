@@ -1,6 +1,6 @@
 import React from 'react'
-import { useAuth } from '../../contexts/AuthContext'
-import { useTour } from '../../contexts/TourContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useTour } from '@/contexts/TourContext'
 
 interface HeaderProps {
   onMenuClick: () => void
