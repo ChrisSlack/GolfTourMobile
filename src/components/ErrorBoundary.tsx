@@ -1,14 +1,15 @@
-import React from 'react'
+
+import { Component, type ReactNode, type ErrorInfo } from 'react'
 
 interface ErrorBoundaryProps {
-  children: React.ReactNode
+  children: ReactNode
 }
 
 interface ErrorBoundaryState {
   hasError: boolean
 }
 
-export class ErrorBoundary extends React.Component<
+export class ErrorBoundary extends Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
@@ -21,7 +22,7 @@ export class ErrorBoundary extends React.Component<
     return { hasError: true }
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('Unhandled error:', error, info)
   }
 

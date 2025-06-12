@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, type FormEvent, type ChangeEvent } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
 
@@ -40,7 +40,7 @@ export default function Auth() {
     )
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -101,7 +101,7 @@ export default function Auth() {
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target
     setFormData(prev => ({
       ...prev,

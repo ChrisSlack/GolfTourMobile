@@ -1,6 +1,7 @@
 import js from '@eslint/js'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
+import importPlugin from 'eslint-plugin-import'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 
@@ -23,6 +24,14 @@ export default [
       '@typescript-eslint': tseslint,
       react,
       'react-hooks': reactHooks,
+      import: importPlugin,
+    },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: './tsconfig.json',
+        },
+      },
     },
     rules: {
       'react/jsx-uses-react': 'off',
@@ -37,6 +46,6 @@ export default [
     },
   },
   {
-    ignores: ['vite.config.ts'],
+    ignores: ['vite.config.ts', 'dist/**/*'],
   },
 ]
