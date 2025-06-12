@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent, type ChangeEvent } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
+import { logger } from '@/utils/logger'
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -48,7 +49,7 @@ export default function Auth() {
     try {
       let result
       if (isSignUp) {
-        console.log('Submitting sign up form')
+        logger.log('Submitting sign up form')
         result = await signUp(
           formData.email,
           formData.password,
@@ -57,16 +58,16 @@ export default function Auth() {
           formData.handicap
         )
       } else {
-        console.log('Submitting sign in form')
+        logger.log('Submitting sign in form')
         result = await signIn(formData.email, formData.password)
       }
 
       if (result.error) {
-        // Use console.warn for user already registered errors since this is a handled scenario
+        // Use logger.warn for user already registered errors since this is a handled scenario
         if (result.error.includes('User already registered') || result.error.includes('user_already_exists')) {
-          console.warn('Auth warning:', result.error)
+          logger.warn('Auth warning:', result.error)
         } else {
-          console.error('Auth error:', result.error)
+          logger.error('Auth error:', result.error)
         }
         
         // Provide user-friendly error messages
@@ -90,12 +91,12 @@ export default function Auth() {
         }
         setLoading(false)
       } else {
-        console.log('Auth successful, should redirect soon')
+        logger.log('Auth successful, should redirect soon')
         // Success - keep loading true until redirect happens
         // The auth context will handle the redirect
       }
     } catch (err) {
-      console.error('Unexpected auth error:', err)
+      logger.error('Unexpected auth error:', err)
       setError('An unexpected error occurred')
       setLoading(false)
     }
