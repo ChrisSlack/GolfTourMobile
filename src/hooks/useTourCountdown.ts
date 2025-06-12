@@ -7,7 +7,8 @@ export function useTourCountdown(tour: Tour | null) {
     const startDate = new Date(tour.start_date)
     const now = new Date()
     const diffTime = startDate.getTime() - now.getTime()
-    if (diffTime <= 0) return null
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    if (diffTime < 0) return null
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays + 1
   }, [tour?.start_date])
 }

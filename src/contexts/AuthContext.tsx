@@ -213,7 +213,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     logger.log('Signing out')
     setLoading(true)
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch (error: any) {
+      logger.error('Sign out error:', error)
+    } finally {
+      setLoading(false)
+    }
     // Auth state change will handle cleanup
   }
 

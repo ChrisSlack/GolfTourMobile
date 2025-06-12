@@ -26,6 +26,7 @@ Ensure you have **Node.js 18** or later installed. The CI pipeline uses Node 20.
 - `npm run preview` - preview the production build
 - `npm run lint` - run ESLint
 - `npm test` - run unit tests with Vitest
+- `npm audit` - check for dependency vulnerabilities
 
 ## Architecture
 
