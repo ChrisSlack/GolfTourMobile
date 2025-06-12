@@ -8,14 +8,14 @@ interface AuthContextType {
   user: User | null
   supabaseUser: SupabaseUser | null
   loading: boolean
-  signIn: (_email: string, _password: string) => Promise<{ error: string | null }>
+  signIn: (_email: string, _password: string) => Promise<{ error: unknown | null }>
   signUp: (
     _email: string,
     _password: string,
     _firstName: string,
     _lastName: string,
     _handicap: number
-  ) => Promise<{ error: string | null }>
+  ) => Promise<{ error: unknown | null }>
   signOut: () => Promise<void>
   updateProfile: (_data: Partial<User>) => Promise<{ error: string | null }>
 }
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        logger.log('Initializing auth...')
+        logger.log('Initializing auth...', { component: 'AuthContext' })
         
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession()
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!mounted) return
 
         if (error) {
-          logger.error('Session error:', error)
+          logger.error('Session error', { component: 'AuthContext', error })
           setSupabaseUser(null)
           setUser(null)
           setLoading(false)
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false)
         }
       } catch (error) {
-        logger.error('Auth initialization error:', error)
+        logger.error('Auth initialization error', { component: 'AuthContext', error })
         if (mounted) {
           setSupabaseUser(null)
           setUser(null)
@@ -71,7 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
       
-      logger.log('Auth state changed:', event, session?.user?.id)
+      logger.log('Auth state changed', {
+        component: 'AuthContext',
+        event,
+        userId: session?.user?.id
+      })
       
       setSupabaseUser(session?.user ?? null)
       
@@ -91,7 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      logger.log('Fetching user profile for:', userId)
+      logger.log('Fetching user profile', {
+        component: 'AuthContext',
+        userId
+      })
       
       const { data, error } = await supabase
         .from('users')
@@ -100,35 +107,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle()
 
       if (error) {
-        logger.error('Error fetching user profile:', error)
+        logger.error('Error fetching user profile', {
+          component: 'AuthContext',
+          error
+        })
         
         // Handle specific error cases
         if (error.code === 'PGRST116' || error.message?.includes('no rows returned')) {
-          logger.log('User profile not found - user may need to complete registration')
+          logger.log('User profile not found - user may need to complete registration', {
+            component: 'AuthContext'
+          })
         } else if (error.code === '42P01' || error.message?.includes('does not exist')) {
-          logger.error('Database table does not exist - please run migrations')
+          logger.error('Database table does not exist - please run migrations', {
+            component: 'AuthContext'
+          })
         }
         
         setUser(null)
       } else if (data) {
-        logger.log('User profile fetched successfully:', data)
+        logger.log('User profile fetched successfully', {
+          component: 'AuthContext',
+          data
+        })
         setUser(data)
       } else {
-        logger.log('No user profile found')
+        logger.log('No user profile found', { component: 'AuthContext' })
         setUser(null)
       }
     } catch (error: any) {
-      logger.error('Profile fetch error:', error.message)
+      logger.error('Profile fetch error', { component: 'AuthContext', error: error.message })
       setUser(null)
     } finally {
-      logger.log('Setting loading to false')
+      logger.log('Setting loading to false', { component: 'AuthContext' })
       setLoading(false)
     }
   }
 
   const signIn = async (email: string, password: string) => {
     try {
-      logger.log('Attempting sign in for:', email)
+      logger.log('Attempting sign in', { component: 'AuthContext', email })
       setLoading(true)
       
       const { data: _data, error } = await supabase.auth.signInWithPassword({
@@ -137,26 +154,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (error) {
-        logger.error('Sign in error:', error)
+        logger.error('Sign in error', { component: 'AuthContext', error })
         setLoading(false)
-        return { error: error.message }
+        return { error }
       }
 
-      logger.log('Sign in successful')
+      logger.log('Sign in successful', { component: 'AuthContext' })
       // Auth state change will handle the rest
       return { error: null }
     } catch (error: any) {
-      logger.error('Unexpected sign in error:', error)
+      logger.error('Unexpected sign in error', { component: 'AuthContext', error })
       setLoading(false)
-      return { error: 'An unexpected error occurred' }
+      return { error }
     }
   }
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, handicap: number) => {
     try {
-      logger.log('Attempting sign up for:', email)
+      logger.log('Attempting sign up', { component: 'AuthContext', email })
       setLoading(true)
-      
+
+      const { data: exists } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single()
+      if (exists) {
+        setLoading(false)
+        return { error: new Error('User already registered') }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -165,16 +192,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         // Use logger.warn for user already registered errors since this is a handled scenario
         if (error.message.includes('User already registered') || error.message.includes('user_already_exists')) {
-          logger.warn('Sign up warning:', error.message)
+          logger.warn('Sign up warning', { component: 'AuthContext', message: error.message })
         } else {
-          logger.error('Sign up error:', error)
+          logger.error('Sign up error', { component: 'AuthContext', error })
         }
         setLoading(false)
-        return { error: error.message }
+        return { error }
       }
 
       if (data.user) {
-        logger.log('Creating user profile for:', data.user.id)
+        logger.log('Creating user profile', { component: 'AuthContext', userId: data.user.id })
         try {
           const { error: profileError } = await supabase
             .from('users')
@@ -188,35 +215,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             })
 
           if (profileError) {
-            logger.error('Profile creation error:', profileError)
+            logger.error('Profile creation error', { component: 'AuthContext', error: profileError })
             // Don't fail the whole signup if profile creation fails
             if (profileError.code !== '42P01') {
-              logger.warn('Profile creation failed but continuing with signup')
+              logger.warn('Profile creation failed but continuing with signup', { component: 'AuthContext' })
             }
           } else {
-            logger.log('User profile created successfully')
+            logger.log('User profile created successfully', { component: 'AuthContext' })
           }
         } catch (profileError) {
-          logger.warn('Profile creation failed:', profileError)
+          logger.warn('Profile creation failed', { component: 'AuthContext', error: profileError })
         }
       }
 
       setLoading(false)
       return { error: null }
     } catch (error: any) {
-      logger.error('Sign up error:', error)
+      logger.error('Sign up error', { component: 'AuthContext', error })
       setLoading(false)
-      return { error: error.message || 'An unexpected error occurred' }
+      return { error }
     }
   }
 
   const signOut = async () => {
-    logger.log('Signing out')
+    logger.log('Signing out', { component: 'AuthContext' })
     setLoading(true)
     try {
       await supabase.auth.signOut()
     } catch (error: any) {
-      logger.error('Sign out error:', error)
+      logger.error('Sign out error', { component: 'AuthContext', error })
     } finally {
       setLoading(false)
     }

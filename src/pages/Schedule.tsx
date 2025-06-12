@@ -10,22 +10,33 @@ export default function Schedule() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    const controller = new AbortController()
+
     async function fetchSchedule() {
       try {
         const { data, error } = await supabase
           .from('schedule')
-          .select('*, course:course_id(*)')
+          .select('*, course:course_id(*)', { signal: controller.signal })
           .order('date', { ascending: true })
         if (error) throw error
         setItems(data || [])
+        if (data && data.length > 50) {
+          // TODO: add pagination when items.length > 50
+        }
       } catch (err: any) {
-        logger.error('Failed to fetch schedule:', err)
+        logger.error('Failed to fetch schedule', {
+          component: 'Schedule',
+          error: err
+        })
         setError(err.message || 'Failed to load schedule')
       } finally {
         setLoading(false)
       }
     }
+
     fetchSchedule()
+
+    return () => controller.abort()
   }, [])
 
   return (

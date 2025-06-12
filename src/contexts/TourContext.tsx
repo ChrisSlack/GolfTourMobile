@@ -33,7 +33,10 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
         setActiveTour(null)
       }
     } catch (error) {
-      logger.error('Error fetching active tour:', error)
+      logger.error('Error fetching active tour', {
+        component: 'TourContext',
+        error
+      })
       setActiveTour(null)
     } finally {
       setLoading(false)
