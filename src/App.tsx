@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { TourProvider } from './contexts/TourContext'
 import Layout from './components/Layout/Layout'
 import LoadingSpinner from './components/UI/LoadingSpinner'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 // Lazy load pages for better performance
 const Home = React.lazy(() => import('./pages/Home'))
@@ -22,8 +23,9 @@ function App() {
     <AuthProvider>
       <TourProvider>
         <Layout>
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/schedule" element={<Schedule />} />
               <Route path="/courses" element={<Courses />} />
@@ -36,6 +38,7 @@ function App() {
               <Route path="/auth" element={<Auth />} />
             </Routes>
           </Suspense>
+          </ErrorBoundary>
         </Layout>
       </TourProvider>
     </AuthProvider>

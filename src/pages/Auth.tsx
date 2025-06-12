@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
 
 export default function Auth() {
@@ -114,7 +114,7 @@ export default function Auth() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-white text-2xl">⛳</span>
+            <span role="img" aria-label="golf" className="text-white text-2xl">⛳</span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
             {isSignUp ? 'Join the Tour' : 'Welcome Back'}
