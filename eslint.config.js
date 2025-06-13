@@ -56,6 +56,6 @@ export default [
     },
   },
   {
-    ignores: ['vite.config.ts', 'dist/**/*', 'eslint.config.js', 'postcss.config.js'],
+    ignores: ['vite.config.ts', 'vitest.config.ts', 'dist/**/*', 'eslint.config.js', 'postcss.config.js'],
   },
 ]

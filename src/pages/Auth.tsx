@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
 import { logger } from '@/utils/logger'
 import { AuthApiError } from '@supabase/supabase-js'
+import { isAuthApiError } from '@/types/api'
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -91,13 +92,12 @@ export default function Auth() {
             lastName: '',
             handicap: 18
           }))
-        } else if (
-          result.error instanceof AuthApiError &&
+        } else if (isAuthApiError(result.error) &&
           result.error.message.includes('Invalid login credentials')
         ) {
           setError('Invalid email or password. Please check your credentials and try again.')
         } else if (
-          result.error instanceof AuthApiError &&
+          isAuthApiError(result.error) &&
           result.error.message.includes('Email not confirmed')
         ) {
           setError('Please check your email and click the confirmation link before signing in.')

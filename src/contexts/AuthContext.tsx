@@ -3,21 +3,22 @@ import { User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { User } from '@/types'
 import { logger } from '@/utils/logger'
+import { Result } from '@/types/api'
 
 interface AuthContextType {
   user: User | null
   supabaseUser: SupabaseUser | null
   loading: boolean
-  signIn: (_email: string, _password: string) => Promise<{ error: unknown | null }>
+  signIn: (_email: string, _password: string) => Promise<Result<null>>
   signUp: (
     _email: string,
     _password: string,
     _firstName: string,
     _lastName: string,
     _handicap: number
-  ) => Promise<{ error: unknown | null }>
+  ) => Promise<Result<null>>
   signOut: () => Promise<void>
-  updateProfile: (_data: Partial<User>) => Promise<{ error: string | null }>
+  updateProfile: (_data: Partial<User>) => Promise<Result<null>>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -29,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true
+    const controller = new AbortController()
 
     const initializeAuth = async () => {
       try {
@@ -89,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false
+      controller.abort()
       subscription.unsubscribe()
     }
   }, [])
@@ -143,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<Result<null>> => {
     try {
       logger.log('Attempting sign in', { component: 'AuthContext', email })
       setLoading(true)
@@ -161,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       logger.log('Sign in successful', { component: 'AuthContext' })
       // Auth state change will handle the rest
-      return { error: null }
+      return {}
     } catch (error: any) {
       logger.error('Unexpected sign in error', { component: 'AuthContext', error })
       setLoading(false)
@@ -169,7 +172,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string, handicap: number) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    handicap: number
+  ): Promise<Result<null>> => {
     try {
       logger.log('Attempting sign up', { component: 'AuthContext', email })
       setLoading(true)
@@ -229,7 +238,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setLoading(false)
-      return { error: null }
+      return {}
     } catch (error: any) {
       logger.error('Sign up error', { component: 'AuthContext', error })
       setLoading(false)
@@ -250,8 +259,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Auth state change will handle cleanup
   }
 
-  const updateProfile = async (data: Partial<User>) => {
-    if (!user) return { error: 'Not authenticated' }
+  const updateProfile = async (data: Partial<User>): Promise<Result<null>> => {
+    if (!user) return { error: new Error('Not authenticated') }
 
     try {
       const { error } = await supabase
@@ -262,9 +271,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error
 
       setUser({ ...user, ...data })
-      return { error: null }
+      return {}
     } catch (error: any) {
-      return { error: error.message || 'Failed to update profile' }
+      return { error }
     }
   }
 

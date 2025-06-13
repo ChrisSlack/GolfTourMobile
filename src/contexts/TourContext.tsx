@@ -44,7 +44,9 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    const controller = new AbortController()
     fetchActiveTour()
+    return () => controller.abort()
   }, [])
 
   const refreshTour = async () => {
