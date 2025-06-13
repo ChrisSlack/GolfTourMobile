@@ -26,7 +26,7 @@ export default function Profile() {
     try {
       const result = await updateProfile(formData)
       if (result.error) {
-        setError(result.error)
+        setError((result.error as Error).message)
       } else {
         setSuccess('Profile updated successfully!')
       }
